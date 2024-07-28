@@ -1,13 +1,16 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
-import 'package:qr_scanner/cubit/cutoutsize_cubit.dart';
-import 'package:qr_scanner/utils/app_constants.dart';
-import 'package:qr_scanner/views/screens/generate_screen.dart';
+import 'package:qr_scanner/cubit/screen_cubit.dart';
+import 'package:qr_scanner/utils/app_color.dart';
+import 'package:qr_scanner/views/screens/generate/generate_category_screen.dart';
+import 'package:qr_scanner/views/screens/history/history_screen.dart';
+import 'package:qr_scanner/views/screens/scanner/scanner_screen.dart';
+import 'package:qr_scanner/views/widgets/button_widget.dart';
+import 'package:qr_scanner/views/widgets/custom_container.dart';
 import 'package:qr_scanner/views/widgets/custom_text.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -22,111 +25,129 @@ class _HomepageState extends State<Homepage> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   Barcode? result;
   QRViewController? controller;
-  double zoomLevel = 1.0;
 
   @override
   Widget build(BuildContext context) {
+    List<Widget> topbars = [
+      CustomContainer(
+        isColor: true,
+        widget: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            CustomText(
+              text: "Generate QR",
+              size: 20,
+              fontWeight: FontWeight.bold,
+            ),
+            ButtonWidget(icon: Icons.menu),
+          ],
+        ),
+      ),
+      CustomContainer(
+        isShadow: true,
+        widget: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildtopButton(Icons.image, () {}),
+            _buildtopButton(Icons.flash_on, () {
+              controller?.toggleFlash();
+            }),
+            _buildtopButton(Icons.cameraswitch_rounded, () {
+              controller?.flipCamera();
+            }),
+          ],
+        ),
+      ),
+      CustomContainer(
+        isColor: true,
+        widget: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            CustomText(
+              text: "History",
+              size: 20,
+              fontWeight: FontWeight.bold,
+            ),
+            ButtonWidget(icon: Icons.menu),
+          ],
+        ),
+      ),
+    ];
+
+    List<Widget> centerWidgets = [
+      GenerateCategoryScreen(),
+      ScannerScreen(onQRViewCreated: _onQRViewCreated, qrKey: qrKey),
+      HistoryScreen(),
+    ];
     return Scaffold(
-      body: Stack(
-        children: [
-          BlocBuilder<CutoutsizeCubit, double>(
-            builder: (context, state) {
-              return GestureDetector(
-                onPanUpdate: (details) {
-                  context.read<CutoutsizeCubit>().onPanUpdate(
-                        details: details,
-                        context: context,
-                      );
-                },
-                child: QRView(
-                  key: qrKey,
-                  onQRViewCreated: _onQRViewCreated,
-                  overlay: QrScannerOverlayShape(
-                    borderColor: Colors.yellow,
-                    borderRadius: 10,
-                    borderLength: 30,
-                    borderWidth: 10,
-                    cutOutSize: state,
+      body: BlocBuilder<ScreenCubit, int>(
+        builder: (context, state) {
+          return Stack(
+            children: [
+              centerWidgets[state],
+              Align(
+                alignment: Alignment.topCenter,
+                child: topbars[state],
+              ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: CustomContainer(
+                  isShadow: false,
+                  widget: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildButton(
+                        Icons.qr_code,
+                        "Generate",
+                        () {
+                          controller?.stopCamera();
+                          context.read<ScreenCubit>().onScreenChanged(0);
+                        },
+                      ),
+                      _buildButton(
+                        Icons.history,
+                        "History",
+                        () {
+                          controller?.stopCamera();
+                          context.read<ScreenCubit>().onScreenChanged(2);
+                        },
+                      ),
+                    ],
                   ),
                 ),
-              );
-            },
-          ),
-          Align(
-            alignment: Alignment.topCenter,
-            child: _buildContainer(
-                isShadow: true,
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildtopButton(Icons.image, () {}),
-                    _buildtopButton(Icons.flash_on, () {
-                      controller?.toggleFlash();
-                    }),
-                    _buildtopButton(Icons.cameraswitch_rounded, () {
-                      controller?.flipCamera();
-                    }),
-                  ],
-                )),
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: _buildContainer(
-              isShadow: false,
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildButton(
-                    Icons.qr_code,
-                    "Generate",
-                    () {
-                      controller?.stopCamera();
-                      Navigator.of(context)
-                          .push(
-                        CupertinoPageRoute(
-                          builder: (context) => GenerateScreen(),
+              ),
+              Positioned(
+                bottom: 70,
+                left: MediaQuery.of(context).size.width / 2.5,
+                child: GestureDetector(
+                  onTap: () {
+                    controller?.resumeCamera();
+                    context.read<ScreenCubit>().onScreenChanged(1);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(15),
+                    height: 70,
+                    width: 70,
+                    decoration: BoxDecoration(
+                      boxShadow: const [
+                        BoxShadow(
+                          color: AppColor.yellow,
+                          blurRadius: 20,
+                          blurStyle: BlurStyle.solid,
                         ),
-                      )
-                          .then(
-                        (value) {
-                          controller?.resumeCamera();
-                        },
-                      );
-                    },
+                      ],
+                      color: AppColor.yellow,
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                    child: SvgPicture.asset(
+                      "assets/images/scan2.svg",
+                    ),
                   ),
-                  _buildButton(
-                    Icons.history,
-                    "History",
-                    () {},
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-          Positioned(
-            bottom: 70,
-            left: MediaQuery.of(context).size.width / 2.5,
-            child: Container(
-              padding: const EdgeInsets.all(15),
-              height: 70,
-              width: 70,
-              decoration: BoxDecoration(
-                boxShadow: const [
-                  BoxShadow(
-                    color: AppConstants.yellow,
-                    blurRadius: 20,
-                    blurStyle: BlurStyle.solid,
-                  ),
-                ],
-                color: AppConstants.yellow,
-                borderRadius: BorderRadius.circular(100),
-              ),
-              child: SvgPicture.asset(
-                "assets/images/scan2.svg",
-              ),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }
@@ -227,27 +248,6 @@ class _HomepageState extends State<Homepage> {
         icon,
         size: 30,
       ),
-    );
-  }
-
-  Widget _buildContainer(Widget widget, {required bool isShadow}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 25),
-      margin: const EdgeInsets.symmetric(horizontal: 30, vertical: 40),
-      decoration: BoxDecoration(
-        boxShadow: isShadow
-            ? [
-                const BoxShadow(
-                  color: Color(0xff333333),
-                  blurRadius: 15,
-                  spreadRadius: 5,
-                )
-              ]
-            : null,
-        borderRadius: BorderRadius.circular(12),
-        color: const Color(0xff333333),
-      ),
-      child: widget,
     );
   }
 }

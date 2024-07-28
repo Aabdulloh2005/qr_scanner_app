@@ -2,8 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
-import 'package:qr_scanner/utils/app_constants.dart';
-import 'package:qr_scanner/views/screens/homepage.dart';
+import 'package:qr_scanner/utils/app_color.dart';
+import 'package:qr_scanner/utils/app_route.dart';
+import '../homepage.dart';
 import 'package:qr_scanner/views/widgets/custom_text.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -45,11 +46,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
             const Gap(20),
             FloatingActionButton(
-              backgroundColor: AppConstants.yellow,
+              backgroundColor: AppColor.yellow,
               onPressed: () {
-                Navigator.of(context).pushReplacement(CupertinoPageRoute(
-                  builder: (context) => const Homepage(),
-                ));
+                Navigator.of(context).pushReplacementNamed(AppRoute.homeScreen);
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -61,13 +60,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     text: "Let's Start",
                     size: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppConstants.black,
+                    color: AppColor.black,
                   ),
                   IconButton(
                     onPressed: () {},
                     icon: const Icon(
                       Icons.keyboard_arrow_right,
-                      color: AppConstants.black,
+                      color: AppColor.black,
                     ),
                   )
                 ],

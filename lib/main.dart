@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qr_scanner/cubit/cutoutsize_cubit.dart';
+import 'package:qr_scanner/cubit/screen_cubit.dart';
+import 'package:qr_scanner/utils/app_route.dart';
 import 'package:qr_scanner/views/screens/homepage.dart';
 
-void main(List<String> args) {
+Future<void> main(List<String> args) async {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MainRunner());
 }
 
@@ -12,13 +15,21 @@ class MainRunner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => CutoutsizeCubit(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => CutoutsizeCubit(),
+        ),
+        BlocProvider(
+          create: (context) => ScreenCubit(),
+        )
+      ],
       child: MaterialApp(
         theme: ThemeData.dark()
-            .copyWith(scaffoldBackgroundColor: const Color(0xff333333)),
+            .copyWith(scaffoldBackgroundColor: const Color(0xff3D3D3D)),
         debugShowCheckedModeBanner: false,
-        home: const Homepage(),
+        home: Homepage(),
+        onGenerateRoute: AppRoute.generateRoute,
       ),
     );
   }
