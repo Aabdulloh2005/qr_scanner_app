@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../homepage.dart';
 
 import 'onboarding_screen.dart';
 
@@ -19,9 +18,11 @@ class _SplashScreenState extends State<SplashScreen> {
     Future.delayed(
       const Duration(seconds: 2),
       () {
-        Navigator.of(context).pushReplacement(CupertinoPageRoute(
-          builder: (context) => const OnboardingScreen(),
-        ));
+        if (mounted) {
+          Navigator.of(context).pushReplacement(CupertinoPageRoute(
+            builder: (context) => const OnboardingScreen(),
+          ));
+        }
       },
     );
   }

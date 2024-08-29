@@ -6,10 +6,9 @@ import 'package:qr_scanner/utils/app_color.dart';
 import '../../../cubit/cutoutsize_cubit.dart';
 
 class ScannerScreen extends StatelessWidget {
-  Function(QRViewController) onQRViewCreated;
-
-  Key qrKey;
-  ScannerScreen(
+  final Function(QRViewController) onQRViewCreated;
+  final Key qrKey;
+  const ScannerScreen(
       {super.key, required this.onQRViewCreated, required this.qrKey});
 
   @override

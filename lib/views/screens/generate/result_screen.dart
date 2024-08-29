@@ -1,32 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:qr_scanner/cubit/result_cubit.dart';
+import 'package:qr_scanner/models/qr_code.dart';
+import 'package:qr_scanner/service/qr_code_save_service.dart';
 import 'package:qr_scanner/utils/app_color.dart';
 import 'package:qr_scanner/views/widgets/button_widget.dart';
 import 'package:qr_scanner/views/widgets/custom_appbar.dart';
 import 'package:qr_scanner/views/widgets/custom_container.dart';
 import 'package:qr_scanner/views/widgets/custom_text.dart';
+import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
-class ResultScreen extends StatelessWidget {
-  final String result;
+import '../../../cubit/result_cubit.dart';
+
+class ResultScreen extends StatefulWidget {
+  final QrCodeModel qrCode;
 
   const ResultScreen({
-    Key? key,
-    required this.result,
-  }) : super(key: key);
+    super.key,
+    required this.qrCode,
+  });
+
+  @override
+  State<ResultScreen> createState() => _ResultScreenState();
+}
+
+class _ResultScreenState extends State<ResultScreen> {
+  final GlobalKey qrKey = GlobalKey();
+
+  final screenshotController = ScreenshotController();
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => ResultCubit(),
       child: Scaffold(
-        appBar: CustomAppbar(
+        appBar: const CustomAppbar(
           title: "Result",
           leading: true,
         ),
@@ -46,8 +59,44 @@ class ResultScreen extends StatelessWidget {
             ],
           ),
         ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        floatingActionButton: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          child: SizedBox(
+            width: double.infinity,
+            child: FloatingActionButton(
+              backgroundColor: AppColor.yellow,
+              onPressed: _openUrl,
+              child: const CustomText(
+                text: "Open",
+                color: AppColor.black,
+                fontWeight: FontWeight.w700,
+                size: 20,
+              ),
+            ),
+          ),
+        ),
       ),
     );
+  }
+
+  void _openUrl() async {
+    if (await canLaunchUrlString(widget.qrCode.content)) {
+      await launchUrlString(widget.qrCode.content);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            duration: Duration(seconds: 2),
+            backgroundColor: AppColor.yellow,
+            content: CustomText(
+              text: 'Could not launch the URL',
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildResultView(BuildContext context) {
@@ -67,8 +116,8 @@ class ResultScreen extends StatelessWidget {
               height: 50,
               width: 50,
             ),
-            title: CustomText(text: "Data"),
-            subtitle: CustomText(text: "16 dec 2022,9:30"),
+            title: const CustomText(text: "Data"),
+            subtitle: const CustomText(text: "16 dec 2022,9:30"),
           ),
           const Divider(
             height: 20,
@@ -76,7 +125,7 @@ class ResultScreen extends StatelessWidget {
             thickness: 0.4,
           ),
           CustomText(
-            text: result,
+            text: widget.qrCode.content,
             size: 17,
             fontWeight: FontWeight.w500,
           ),
@@ -84,7 +133,7 @@ class ResultScreen extends StatelessWidget {
             onPressed: () {
               context.read<ResultCubit>().onResult();
             },
-            child: CustomText(
+            child: const CustomText(
               text: "Show Qr Code",
               color: AppColor.yellow,
               size: 18,
@@ -103,36 +152,41 @@ class ResultScreen extends StatelessWidget {
           margin: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
           widget: ListTile(
             contentPadding: EdgeInsets.zero,
-            title: CustomText(text: "Data"),
-            subtitle: CustomText(text: result),
+            title: const CustomText(text: "Data"),
+            subtitle: CustomText(text: widget.qrCode.content),
           ),
         ),
         GestureDetector(
           onTap: () {
             context.read<ResultCubit>().onResult();
           },
-          child: Container(
-            height: 210,
-            width: 210,
-            clipBehavior: Clip.hardEdge,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: AppColor.yellow, width: 3),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: QrImageView(
-              data: result,
-              embeddedImageStyle:
-                  const QrEmbeddedImageStyle(size: Size(45, 45)),
-              eyeStyle: const QrEyeStyle(
-                eyeShape: QrEyeShape.square,
-                color: Colors.blue,
+          child: Screenshot(
+            controller: screenshotController,
+            child: RepaintBoundary(
+              key: qrKey,
+              child: Container(
+                height: 210,
+                width: 210,
+                clipBehavior: Clip.hardEdge,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: AppColor.yellow, width: 3),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: QrImageView(
+                  data: widget.qrCode.content,
+                  embeddedImageStyle:
+                      const QrEmbeddedImageStyle(size: Size(45, 45)),
+                  eyeStyle: const QrEyeStyle(
+                    eyeShape: QrEyeShape.square,
+                    color: Colors.black,
+                  ),
+                  dataModuleStyle: const QrDataModuleStyle(
+                    color: Colors.black,
+                    dataModuleShape: QrDataModuleShape.square,
+                  ),
+                ),
               ),
-              dataModuleStyle: const QrDataModuleStyle(
-                color: Colors.blue,
-                dataModuleShape: QrDataModuleShape.square,
-              ),
-              embeddedImage: const AssetImage("assets/images/telegram.png"),
             ),
           ),
         ),
@@ -162,9 +216,9 @@ class ResultScreen extends StatelessWidget {
       children: [
         GestureDetector(
           onTap: () {
-            Share.share(result);
+            Share.share(widget.qrCode.content);
           },
-          child: ButtonWidget(
+          child: const ButtonWidget(
             iconSize: 35,
             size: 60,
             color: AppColor.yellow,
@@ -172,7 +226,7 @@ class ResultScreen extends StatelessWidget {
             icon: Icons.share,
           ),
         ),
-        CustomText(text: "Share", size: 15),
+        const CustomText(text: "Share", size: 15),
       ],
     );
   }
@@ -182,22 +236,24 @@ class ResultScreen extends StatelessWidget {
       children: [
         GestureDetector(
           onTap: () {
-            Clipboard.setData(ClipboardData(text: result)).then(
+            Clipboard.setData(ClipboardData(text: widget.qrCode.content)).then(
               (value) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    backgroundColor: AppColor.yellow,
-                    duration: const Duration(seconds: 1),
-                    content: CustomText(
-                      text: "Copied to clipboard",
-                      size: 16,
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      backgroundColor: AppColor.yellow,
+                      duration: Duration(seconds: 1),
+                      content: CustomText(
+                        text: "Copied to clipboard",
+                        size: 16,
+                      ),
                     ),
-                  ),
-                );
+                  );
+                }
               },
             );
           },
-          child: ButtonWidget(
+          child: const ButtonWidget(
             iconSize: 35,
             size: 60,
             color: AppColor.yellow,
@@ -205,7 +261,7 @@ class ResultScreen extends StatelessWidget {
             icon: Icons.copy_all_outlined,
           ),
         ),
-        CustomText(text: "Copy", size: 15),
+        const CustomText(text: "Copy", size: 15),
       ],
     );
   }
@@ -214,8 +270,26 @@ class ResultScreen extends StatelessWidget {
     return Column(
       children: [
         GestureDetector(
-          onTap: ()  {},
-          child: ButtonWidget(
+          onTap: () async {
+            final saved = await QrCodeSaveService.generateAndSaveQRCode(
+              screenshotController: screenshotController,
+            );
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: AppColor.yellow,
+                  duration: const Duration(seconds: 2),
+                  content: CustomText(
+                    text: saved
+                        ? "QR Code saved to gallery"
+                        : "Failed to save QR Code",
+                    size: 16,
+                  ),
+                ),
+              );
+            }
+          },
+          child: const ButtonWidget(
             iconSize: 35,
             size: 60,
             color: AppColor.yellow,
@@ -223,7 +297,7 @@ class ResultScreen extends StatelessWidget {
             icon: Icons.save,
           ),
         ),
-        CustomText(text: "Save", size: 15),
+        const CustomText(text: "Save", size: 15),
       ],
     );
   }

@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
+import 'package:qr_scanner/models/qr_code.dart';
+import 'package:qr_scanner/service/qr_code_service.dart';
 import 'package:qr_scanner/utils/app_color.dart';
 import 'package:qr_scanner/utils/app_route.dart';
 import 'package:qr_scanner/utils/extensions.dart';
 import 'package:qr_scanner/views/widgets/custom_appbar.dart';
 import 'package:qr_scanner/views/widgets/custom_text.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 class GenerateScreen extends StatelessWidget {
   final String icon;
@@ -92,25 +93,22 @@ class GenerateScreen extends StatelessWidget {
                       horizontal: 50.0, vertical: 10),
                   child: FloatingActionButton(
                     backgroundColor: AppColor.yellow,
-                    onPressed: () {
-                      Navigator.of(context).pushNamed(
-                        AppRoute.resultScreen,
-                        arguments: "$baseUrl${textController.text}",
+                    onPressed: () async {
+                      final qrCode = QrCodeModel(
+                        content: "$baseUrl${textController.text}",
+                        createdAt: DateTime.now(),
+                        isScanned: false,
                       );
-                      // showDialog(
-                      //   context: context,
-                      //   builder: (context) {
-                      //     return Dialog(
-                      //       backgroundColor: Colors.white,
-                      //       child: QrImageView(
-                      //         data: "$baseUrl${textController.text}",
-                      //         version: QrVersions.auto,
-                      //       ),
-                      //     );
-                      //   },
-                      // );
+                      await QrCodeService().addQrCode(qrCode);
+
+                      if (context.mounted) {
+                        Navigator.of(context).pushNamed(
+                          AppRoute.resultScreen,
+                          arguments: qrCode,
+                        );
+                      }
                     },
-                    child: CustomText(
+                    child: const CustomText(
                       text: "Generate QR Code",
                       color: AppColor.black,
                       fontWeight: FontWeight.bold,

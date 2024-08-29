@@ -31,7 +31,7 @@ class GenerateCategoryScreen extends StatelessWidget {
     "Phone Number",
     "Text",
   ];
-  List<String> baseUrls = [
+  final List<String> baseUrls = [
     'https://t.me/',
     'https://www.instagram.com/',
     'MAILTO:',
@@ -40,7 +40,7 @@ class GenerateCategoryScreen extends StatelessWidget {
     'https://web.whatsapp.com/',
     'https://',
     'tel:',
-    ' '
+    ' ',
   ];
 
   @override

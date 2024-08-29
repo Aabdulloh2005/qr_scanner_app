@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:qr_scanner/models/qr_code.dart';
 import 'package:qr_scanner/views/screens/generate/generate_screen.dart';
 import 'package:qr_scanner/views/screens/generate/result_screen.dart';
 import 'package:qr_scanner/views/screens/history/history_screen.dart';
@@ -37,9 +38,9 @@ class AppRoute {
       case AppRoute.historyScreen:
         return _buildPageRoute(const HistoryScreen());
       case AppRoute.resultScreen:
-        final url = settings.arguments as String;
+        final qrCode = settings.arguments as QrCodeModel;
         return _buildPageRoute(ResultScreen(
-          result: url,
+          qrCode: qrCode,
         ));
       default:
         return _buildPageRoute(const Homepage());

@@ -1,18 +1,21 @@
+import 'dart:io';
+import 'package:barcode_finder/barcode_finder.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:gap/gap.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:qr_scanner/cubit/screen_cubit.dart';
+import 'package:qr_scanner/models/qr_code.dart';
+import 'package:qr_scanner/service/qr_code_service.dart';
 import 'package:qr_scanner/utils/app_color.dart';
+import 'package:qr_scanner/utils/app_route.dart';
 import 'package:qr_scanner/views/screens/generate/generate_category_screen.dart';
 import 'package:qr_scanner/views/screens/history/history_screen.dart';
 import 'package:qr_scanner/views/screens/scanner/scanner_screen.dart';
 import 'package:qr_scanner/views/widgets/button_widget.dart';
 import 'package:qr_scanner/views/widgets/custom_container.dart';
 import 'package:qr_scanner/views/widgets/custom_text.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -25,11 +28,63 @@ class _HomepageState extends State<Homepage> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   Barcode? result;
   QRViewController? controller;
+  bool isCameraInitialized = false;
+
+  Future<void> _scanImage(File image) async {
+    final qrCodeResult = await BarcodeFinder.scanFile(path: image.path);
+    if (qrCodeResult != null) {
+      await _pauseCamera();
+      final qrCode = QrCodeModel(
+        content: qrCodeResult,
+        createdAt: DateTime.now(),
+        isScanned: true,
+      );
+      await QrCodeService().addQrCode(qrCode);
+      if (mounted) {
+        Navigator.of(context).pushNamed(
+          AppRoute.resultScreen,
+          arguments: qrCode,
+        );
+      }
+      await _resumeCamera();
+    }
+  }
+
+  Future<void> _pauseCamera() async {
+    if (isCameraInitialized && controller != null) {
+      try {
+        await controller!.pauseCamera();
+      } catch (e) {
+        print('Error pausing camera: $e');
+      }
+    }
+  }
+
+  Future<void> _resumeCamera() async {
+    if (isCameraInitialized && controller != null) {
+      try {
+        await controller!.resumeCamera();
+      } catch (e) {
+        print('Error resuming camera: $e');
+      }
+    }
+  }
+
+  Future<void> _stopCamera() async {
+    if (isCameraInitialized && controller != null) {
+      try {
+        await controller!.stopCamera();
+        isCameraInitialized = false;
+      } catch (e) {
+        print('Error stopping camera: $e');
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     List<Widget> topbars = [
-      CustomContainer(
+      const CustomContainer(
         isColor: true,
         widget: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -48,7 +103,13 @@ class _HomepageState extends State<Homepage> {
         widget: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildtopButton(Icons.image, () {}),
+            _buildtopButton(Icons.image, () async {
+              final pickedFile =
+                  await ImagePicker().pickImage(source: ImageSource.gallery);
+              if (pickedFile != null) {
+                await _scanImage(File(pickedFile.path));
+              }
+            }),
             _buildtopButton(Icons.flash_on, () {
               controller?.toggleFlash();
             }),
@@ -58,7 +119,7 @@ class _HomepageState extends State<Homepage> {
           ],
         ),
       ),
-      CustomContainer(
+      const CustomContainer(
         isColor: true,
         widget: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -77,7 +138,7 @@ class _HomepageState extends State<Homepage> {
     List<Widget> centerWidgets = [
       GenerateCategoryScreen(),
       ScannerScreen(onQRViewCreated: _onQRViewCreated, qrKey: qrKey),
-      HistoryScreen(),
+      const HistoryScreen(),
     ];
     return Scaffold(
       body: BlocBuilder<ScreenCubit, int>(
@@ -154,71 +215,35 @@ class _HomepageState extends State<Homepage> {
 
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
+    isCameraInitialized = true;
 
-    controller.scannedDataStream.listen((scanData) {
+    controller.scannedDataStream.listen((scanData) async {
       setState(() {
         result = scanData;
       });
       if (result != null) {
-        controller.stopCamera();
+        await _pauseCamera();
         final urlCode = result!.code.toString();
-        showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: const Text("Result"),
-              content: Text(urlCode),
-              actionsAlignment: MainAxisAlignment.spaceBetween,
-              actions: [
-                Row(
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: const Text("Cancel"),
-                    ),
-                    const Gap(10),
-                    FilledButton(
-                      onPressed: () async {
-                        Clipboard.setData(ClipboardData(text: urlCode))
-                            .then((_) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  duration: Duration(seconds: 1),
-                                  content: Text("Url copied to Clipboard")));
-                        });
-                      },
-                      child: const Text("Copy"),
-                    ),
-                    const Gap(10),
-                    FilledButton(
-                      onPressed: () async {
-                        Uri url = Uri.parse(urlCode);
 
-                        if (await launchUrl(url)) {
-                          print("Wrong url");
-                        }
-                      },
-                      child: const Text("Open"),
-                    )
-                  ],
-                )
-              ],
-            );
-          },
-        ).then(
-          (value) {
-            controller.resumeCamera();
-          },
+        final qrCode = QrCodeModel(
+          content: urlCode,
+          createdAt: DateTime.now(),
+          isScanned: true,
         );
+        await QrCodeService().addQrCode(qrCode);
+        if (mounted) {
+          Navigator.of(context).pushNamed(
+            AppRoute.resultScreen,
+            arguments: qrCode,
+          );
+        }
       }
     });
   }
 
   @override
   void dispose() {
-    controller?.dispose();
+    _stopCamera();
     super.dispose();
   }
 

@@ -1,11 +1,15 @@
 import 'package:flutter/cupertino.dart';
 
 class CustomContainer extends StatelessWidget {
+  final
   Widget widget;
+  final
   bool isShadow;
+  final
   bool isColor;
+  final
   EdgeInsetsGeometry? margin;
-  CustomContainer(
+  const CustomContainer(
       {super.key,
       this.isShadow = false,
       required this.widget,

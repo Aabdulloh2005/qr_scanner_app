@@ -2,12 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:qr_scanner/utils/app_color.dart';
 
 class ButtonWidget extends StatelessWidget {
+  final
   IconData icon;
+  final
   double size;
+  final
   Color color;
+  final
   Color iconColor;
+  final
   double? iconSize;
-  ButtonWidget({
+  const ButtonWidget({
     super.key,
     required this.icon,
     this.size = 40,

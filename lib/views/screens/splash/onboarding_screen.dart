@@ -1,10 +1,8 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
 import 'package:qr_scanner/utils/app_color.dart';
 import 'package:qr_scanner/utils/app_route.dart';
-import '../homepage.dart';
 import 'package:qr_scanner/views/widgets/custom_text.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -34,8 +32,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Padding(
-              padding: const EdgeInsets.all(15.0),
+            const Padding(
+              padding: EdgeInsets.all(15.0),
               child: CustomText(
                 textAlign: TextAlign.center,
                 text:
@@ -56,7 +54,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   const SizedBox(
                     width: 50,
                   ),
-                  CustomText(
+                  const CustomText(
                     text: "Let's Start",
                     size: 16,
                     fontWeight: FontWeight.bold,

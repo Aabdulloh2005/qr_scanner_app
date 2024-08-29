@@ -3,12 +3,12 @@ import 'package:qr_scanner/utils/app_color.dart';
 import 'package:qr_scanner/views/widgets/custom_text.dart';
 
 class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
-  String title;
-  bool leading;
-  Widget? actions;
-  PreferredSizeWidget? bottom;
+  final String title;
+  final bool leading;
+  final Widget? actions;
+  final PreferredSizeWidget? bottom;
 
-  CustomAppbar({
+  const CustomAppbar({
     super.key,
     required this.title,
     this.actions,
