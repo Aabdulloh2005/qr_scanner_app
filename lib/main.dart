@@ -5,7 +5,7 @@ import 'package:qr_scanner/cubit/cutoutsize_cubit.dart';
 import 'package:qr_scanner/cubit/screen_cubit.dart';
 import 'package:qr_scanner/models/qr_code.dart';
 import 'package:qr_scanner/utils/app_route.dart';
-import 'package:qr_scanner/views/screens/homepage.dart';
+import 'package:qr_scanner/views/screens/splash/splash_screen.dart';
 
 Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,7 +33,7 @@ class MainRunner extends StatelessWidget {
           scaffoldBackgroundColor: const Color(0xff3D3D3D),
         ),
         debugShowCheckedModeBanner: false,
-        home: const Homepage(),
+        home: const SplashScreen(),
         onGenerateRoute: AppRoute.generateRoute,
       ),
     );

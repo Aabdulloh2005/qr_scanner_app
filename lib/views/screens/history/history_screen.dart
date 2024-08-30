@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
+import 'package:lottie/lottie.dart';
 import 'package:qr_scanner/cubit/history_cubit/history_state.dart';
 import 'package:qr_scanner/models/qr_code.dart';
 import 'package:qr_scanner/service/qr_code_service.dart';
@@ -73,60 +74,62 @@ class HistoryScreen extends StatelessWidget {
   Widget _buildQrCodeList(BuildContext context, List<QrCodeModel> qrCodes) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 45.0),
-      child: ListView.builder(
-        padding: const EdgeInsets.only(top: 20),
-        itemCount: qrCodes.length,
-        itemBuilder: (context, index) {
-          final qrCode = qrCodes[index];
-          return GestureDetector(
-            onTap: () {
-              Navigator.pushNamed(context, AppRoute.resultScreen,
-                  arguments: qrCode);
-            },
-            child: Container(
-              margin: const EdgeInsets.symmetric(vertical: 10),
-              decoration: BoxDecoration(
-                boxShadow: const [
-                  BoxShadow(
-                    color: AppColor.grey,
-                    offset: Offset(0, 1),
-                    blurRadius: 2,
-                  )
-                ],
-                color: AppColor.grey,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: ListTile(
-                visualDensity: VisualDensity.compact,
-                title: CustomText(
-                  text: qrCode.content,
-                  size: 17,
-                ),
-                subtitle: CustomText(
-                  text: qrCode.formattedDate,
-                  color: const Color(0xffA4A4A4),
-                  size: 11,
-                ),
-                leading: SvgPicture.asset(
-                  "assets/images/scan.svg",
-                  height: 33,
-                  width: 33,
-                ),
-                trailing: GestureDetector(
+      child: qrCodes.isEmpty
+          ? Lottie.asset("assets/lottie/empty.json")
+          : ListView.builder(
+              padding: const EdgeInsets.only(top: 20),
+              itemCount: qrCodes.length,
+              itemBuilder: (context, index) {
+                final qrCode = qrCodes[index];
+                return GestureDetector(
                   onTap: () {
-                    context.read<HistoryCubit>().deleteQrCode(qrCode);
+                    Navigator.pushNamed(context, AppRoute.resultScreen,
+                        arguments: qrCode);
                   },
-                  child: SvgPicture.asset(
-                    'assets/images/delete.svg',
-                    height: 24,
-                    width: 24,
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      boxShadow: const [
+                        BoxShadow(
+                          color: AppColor.grey,
+                          offset: Offset(0, 1),
+                          blurRadius: 2,
+                        )
+                      ],
+                      color: AppColor.grey,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: ListTile(
+                      visualDensity: VisualDensity.compact,
+                      title: CustomText(
+                        text: qrCode.content,
+                        size: 17,
+                      ),
+                      subtitle: CustomText(
+                        text: qrCode.formattedDate,
+                        color: const Color(0xffA4A4A4),
+                        size: 11,
+                      ),
+                      leading: SvgPicture.asset(
+                        "assets/images/scan.svg",
+                        height: 33,
+                        width: 33,
+                      ),
+                      trailing: GestureDetector(
+                        onTap: () {
+                          context.read<HistoryCubit>().deleteQrCode(qrCode);
+                        },
+                        child: SvgPicture.asset(
+                          'assets/images/delete.svg',
+                          height: 24,
+                          width: 24,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
-          );
-        },
-      ),
     );
   }
 }

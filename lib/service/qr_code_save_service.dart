@@ -10,7 +10,6 @@ class QrCodeSaveService {
     required ScreenshotController screenshotController,
   }) async {
     try {
-      print(await Permission.storage.request());
       if (await Permission.mediaLibrary.request().isGranted) {
         final directory = await getApplicationDocumentsDirectory();
         final imageFile = await screenshotController.captureAndSave(

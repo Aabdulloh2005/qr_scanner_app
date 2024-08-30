@@ -3,7 +3,7 @@ import 'package:qr_scanner/models/qr_code.dart';
 import 'package:qr_scanner/views/screens/generate/generate_screen.dart';
 import 'package:qr_scanner/views/screens/generate/result_screen.dart';
 import 'package:qr_scanner/views/screens/history/history_screen.dart';
-import 'package:qr_scanner/views/screens/homepage.dart';
+import 'package:qr_scanner/views/screens/home/homepage.dart';
 import 'package:qr_scanner/views/screens/splash/onboarding_screen.dart';
 import 'package:qr_scanner/views/screens/splash/splash_screen.dart';
 

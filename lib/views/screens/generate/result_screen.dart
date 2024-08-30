@@ -7,6 +7,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:qr_scanner/models/qr_code.dart';
 import 'package:qr_scanner/service/qr_code_save_service.dart';
 import 'package:qr_scanner/utils/app_color.dart';
+import 'package:qr_scanner/utils/helpers.dart';
 import 'package:qr_scanner/views/widgets/button_widget.dart';
 import 'package:qr_scanner/views/widgets/custom_appbar.dart';
 import 'package:qr_scanner/views/widgets/custom_container.dart';
@@ -85,16 +86,7 @@ class _ResultScreenState extends State<ResultScreen> {
       await launchUrlString(widget.qrCode.content);
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 2),
-            backgroundColor: AppColor.yellow,
-            content: CustomText(
-              text: 'Could not launch the URL',
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        );
+        Helpers.showSnackBar(context, "Could not launch the URL");
       }
     }
   }
@@ -239,16 +231,7 @@ class _ResultScreenState extends State<ResultScreen> {
             Clipboard.setData(ClipboardData(text: widget.qrCode.content)).then(
               (value) {
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      backgroundColor: AppColor.yellow,
-                      duration: Duration(seconds: 1),
-                      content: CustomText(
-                        text: "Copied to clipboard",
-                        size: 16,
-                      ),
-                    ),
-                  );
+                  Helpers.showSnackBar(context, "Copied to clipboard");
                 }
               },
             );
@@ -275,17 +258,9 @@ class _ResultScreenState extends State<ResultScreen> {
               screenshotController: screenshotController,
             );
             if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  backgroundColor: AppColor.yellow,
-                  duration: const Duration(seconds: 2),
-                  content: CustomText(
-                    text: saved
-                        ? "QR Code saved to gallery"
-                        : "Failed to save QR Code",
-                    size: 16,
-                  ),
-                ),
+              Helpers.showSnackBar(
+                context,
+                saved ? "QR Code saved to gallery" : "Failed to save QR Code",
               );
             }
           },
